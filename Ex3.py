@@ -222,9 +222,15 @@ def encode(df_filled):
     df["Cls_1"] = 0
     df["Cls_2"] = 0
     df["Cls_3"] = 0
+<<<<<<< HEAD
     df["Cls_1"] = df["Cls_1"].where(df["Pclass"] != 1,1)
     df["Cls_2"] = df["Cls_2"].where(df["Pclass"] != 2,1)
     df["Cls_3"] = df["Cls_3"].where(df["Pclass"] != 3,1)     
+=======
+    df["Cls_1"] = df["Cls_1"].where(df["Pclass"] != '1',1)
+    df["Cls_2"] = df["Cls_2"].where(df["Pclass"] != '2',1)
+    df["Cls_3"] = df["Cls_3"].where(df["Pclass"] != '3',1)     
+>>>>>>> 7e1bbb2ed59e89faa2b72d89200b3edb411dc7f5
 
     df["Bin_Sex"] = 0
     df["Bin_Sex"] = df["Bin_Sex"].where(df["Sex"] != "male",1)
@@ -349,6 +355,7 @@ def survival_vs_family(df):
       #! Complete the following print statement after inspecting the reuslts
       
       #! your code here
+<<<<<<< HEAD
     best_metric = " "
     highest = 0
     best_val = -1
@@ -360,6 +367,16 @@ def survival_vs_family(df):
             best_val = find_max
     print("To ensure the highest chance of survival, the metric ", best_metric,'must have the value ', best_val )      
     
+=======
+        best_metric = " "
+        highest = 0
+        for metric in survived_by_family.keys():
+            find_max = max(survived_by_family[metric], key=survived_by_family[metric].get)
+            if(survived_by_family[metric][find_max] > highest):
+                highest = survived_by_family[metric][find_max]
+                best_metric = metric
+        print("To ensure the highest chance of survival, the metric ", best_metric,'must have the value ', highest )      
+>>>>>>> 7e1bbb2ed59e89faa2b72d89200b3edb411dc7f5
     return survived_by_family
 
 
@@ -511,10 +528,21 @@ def survival_correlations(df):
     #! your code here
     #! find the 5 most important numerical columns, and print (with sign) and return their correlation. Use dict or Series
 
+<<<<<<< HEAD
     important_feats = corr["Survived"][1:].abs().sort_values(ascending=False).head().index
 
     important_corrs = corr["Survived"][important_feats]
 
+=======
+    important_feats = corr["Survived"]
+    important_feats.drop(labels=["Survived"], inplace=True)
+    abs_important_feats = important_feats.abs().sort_values(ascending=False).dropna()
+    importent_corrs = {}
+    
+    for i in range(5):
+        importent_corrs[abs_important_feats.keys()[i]] = important_feats[abs_important_feats.keys()[i]]
+    
+>>>>>>> 7e1bbb2ed59e89faa2b72d89200b3edb411dc7f5
     print(important_corrs)
 
     return important_corrs
@@ -561,9 +589,13 @@ def train_logistic_regression(X_train, X_test, y_train, y_test):
 
     from sklearn.model_selection import GridSearchCV
     from sklearn.linear_model import LogisticRegression
+<<<<<<< HEAD
     from sklearn.metrics import confusion_matrix 
     from sklearn.metrics import accuracy_score 
     from sklearn.metrics import f1_score 
+=======
+    from sklearn.metrics import confusion_matrix
+>>>>>>> 7e1bbb2ed59e89faa2b72d89200b3edb411dc7f5
 
     para_grid = {'C' : [0.001, 0.01, 0.1, 1, 10 ,50], # internal regularization parameter of LogisticRegression
                  'solver' : ['sag', 'saga']}
@@ -596,9 +628,15 @@ def train_logistic_regression(X_train, X_test, y_train, y_test):
     '''
 
     #! your code here
+<<<<<<< HEAD
     conf_matrix =  confusion_matrix(y_test, y_test_logistic)
     accuracy =  accuracy_score(y_test, y_test_logistic)
     f1_score =  f1_score(y_test, y_test_logistic)
+=======
+    conf_matrix =  confusion_matrix(X_test, y_test_logistic)
+    accuracy =  <your code here>
+    f1_score =  <your code here>
+>>>>>>> 7e1bbb2ed59e89faa2b72d89200b3edb411dc7f5
 
     print('acc: ', accuracy, 'f1: ', f1_score)
     print('confusion matrix:\n', conf_matrix)
@@ -633,8 +671,12 @@ if __name__ == '__main__':
     survival_vs_age(df)
     important_corrs = survival_correlations(df)
     
+<<<<<<< HEAD
     final_df = df.drop(labels=['Age', 'SibSp', 'Parch', 'Fare', 'Family','log1p_SibSp', 'log1p_Age'], axis=1)   
     X_train, X_test, y_train, y_test = split_data(final_df)
+=======
+    X_train, X_test, y_train, y_test = split_data(df)
+>>>>>>> 7e1bbb2ed59e89faa2b72d89200b3edb411dc7f5
     train_logistic_regression(X_train, X_test, y_train, y_test)
 
     
