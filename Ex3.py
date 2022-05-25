@@ -49,7 +49,8 @@ def load_train_data():
 ## 1.2. 
 ## Display some data - display the top 10 rows
 def disp_some_data(df_train):
-    return df_train.head(n=10)
+    print(df_train.head(n=10))
+    return
 
 ## 1.3. 
 ## In order to know what to do with which columns, we must know what types are there, and how many different values are there for each.
@@ -148,7 +149,7 @@ def fill_titanic_nas(df_lean):
 ## Now that we filled up all the missing values, we want to convert the non-numerical (categorical) variables 
 ## to some numeric representation - so we can apply numerical schemes to it.
 ## We'll encode "Embarked" and "Pclass", using the "one-hot" method
-def encode_one_hot(df_filled):
+def encode(df_filled):
 
     '''
     There are 3 distinct values for "Embarked": "S", "C", "Q". Also, there are 3 classes of tickets. While the column "Pclass" is numeric, 
@@ -210,29 +211,30 @@ def encode_one_hot(df_filled):
 
 
     #! your code here. Hint: you are strongly encouraged to use pd.get_dummies(...) function and then rename the columns. 
-    df_one_hot["Emb_C"] = 0
-    df_one_hot["Emb_Q"] = 0
-    df_one_hot["Emb_S"] = 0
-    df_one_hot["Emb_C"] = df_one_hot["Emb_C"].where(df_one_hot["Embarked"] != 'C',1)
-    df_one_hot["Emb_Q"] = df_one_hot["Emb_Q"].where(df_one_hot["Embarked"] != 'Q',1)
-    df_one_hot["Emb_S"] = df_one_hot["Emb_S"].where(df_one_hot["Embarked"] != 'S',1)    
+    df = df_filled.copy()
+    df["Emb_C"] = 0
+    df["Emb_Q"] = 0
+    df["Emb_S"] = 0
+    df["Emb_C"] = df["Emb_C"].where(df["Embarked"] != 'C',1)
+    df["Emb_Q"] = df["Emb_Q"].where(df["Embarked"] != 'Q',1)
+    df["Emb_S"] = df["Emb_S"].where(df["Embarked"] != 'S',1)    
 
-    df_one_hot["Cls_1"] = 0
-    df_one_hot["Cls_2"] = 0
-    df_one_hot["Cls_3"] = 0
-    df_one_hot["Cls_1"] = df_one_hot["Cls_1"].where(df_one_hot["Pclass"] != '1',1)
-    df_one_hot["Cls_2"] = df_one_hot["Cls_2"].where(df_one_hot["Pclass"] != '2',1)
-    df_one_hot["Cls_3"] = df_one_hot["Cls_3"].where(df_one_hot["Pclass"] != '3',1)     
+    df["Cls_1"] = 0
+    df["Cls_2"] = 0
+    df["Cls_3"] = 0
+    df["Cls_1"] = df["Cls_1"].where(df["Pclass"] != 1,1)
+    df["Cls_2"] = df["Cls_2"].where(df["Pclass"] != 2,1)
+    df["Cls_3"] = df["Cls_3"].where(df["Pclass"] != 3,1)     
 
-    df_one_hot["Bin_Sex"] = 0
-    df_one_hot["Bin_Sex"] = df_one_hot["Bin_Sex"].where(df_one_hot["Sex"] != "male",1)
+    df["Bin_Sex"] = 0
+    df["Bin_Sex"] = df["Bin_Sex"].where(df["Sex"] != "male",1)
     
     
-    df_one_hot = df_one_hot.drop(labels=["Embarked", "Pclass", "Sex"], axis=1)
+    df = df.drop(labels=["Embarked", "Pclass", "Sex"], axis=1)
      # *** NOTE ***: after encoding by one-hot, we may delete the original columns, although it is not necessery. 
     
 
-    return df_one_hot
+    return df
 
 
 ## 2.4 
@@ -241,16 +243,16 @@ def encode_one_hot(df_filled):
 ## Parch - the total number of parents plus children for each passneger.
 ## We want to reflect the whole family size of each passenger - the sum of SibSp and Parch
 ## It will be useful later
-def make_family(df_one_hot):
+def make_family(df):
 
     '''
     Introduce a new column with the name "Family", that will be the sum of "SibSp" and "Parch" columns
     '''
 
     #! your code here
-    df_one_hot['Family'] = df_one_hot["SibSp"] + df_one_hot["Parch"]
+    df['Family'] = df["SibSp"] + df["Parch"]
 
-    return df_one_hot
+    return df
 
 
 ## 2.5 Feature Transformation
@@ -262,15 +264,15 @@ def make_family(df_one_hot):
 ## In short: X -> log(1+X)
 ## There is a numpy function exactly for that: np.log1p
 ## This will be useful later
-def add_log1p(df_one_hot):
+def add_log1p(df):
 
     # For each of the numeric columns: 'Age', 'SibSp', 'Parch', 'Fare', 'Family'
     # we introduce a new column that starts with the 'log1p_' string: 'log1p_Age', 'log1p_SibSp', 'log1p_Parch', 'log1p_Fare', 'log1p_Family'
 
     for col in ['Age', 'SibSp', 'Parch', 'Fare', 'Family']:
-        df_one_hot['log1p_' + col] = np.log1p(df_one_hot[col])
+        df['log1p_' + col] = np.log1p(df[col])
 
-    return df_one_hot
+    return df
 
 
 # 3. Basic exploration of survival. 
@@ -292,10 +294,11 @@ def survival_vs_gender(df):
 
     #! your code here
     #! Return the result in a dict or a series. Your keys for dict / index for Series should be the strings "male", "female"
-    survived_by_gender = {"male": <your code here>, "female": <your code here>}
+    df_male = df[df["Bin_Sex"]== 1 ] #using df
+    df_female = df[df["Bin_Sex"]== 0 ]
+    survived_by_gender = {"male": df_male["Survived"].mean(), "female": df_female["Survived"].mean()}
 
     print(survived_by_gender)
-
     return survived_by_gender
 
 
@@ -306,7 +309,11 @@ def survival_vs_class(df):
     #! Return the result in a dict or a series. Your keys for dict / index for Series should be the strings "Cls_1", "Cls_2", "Cls_3"
     # For instance: survived_by_class = {"Cls_1": .25, "Cls_2": .35, "Cls_3": .45}
     
-    survived_by_class = {"Cls_1": <your code here>, "Cls_2": <your code here>, "Cls_3": <your code here>}
+    df_Cls_1 = df[df["Cls_1"]== 1 ] #using df
+    df_Cls_2 = df[df["Cls_2"]== 1 ] #using df
+    df_Cls_3 = df[df["Cls_3"]== 1 ] #using df
+
+    survived_by_class = {"Cls_1": df_Cls_1["Survived"].mean(), "Cls_2": df_Cls_2["Survived"].mean(), "Cls_3": df_Cls_3["Survived"].mean()}
     print(survived_by_class)
 
     return survived_by_class
@@ -324,8 +331,9 @@ def survival_vs_family(df):
     for metric in ["SibSp", "Parch", "Family"]:
 
         #! your code here
-        survived_by_metric = {  <your code here>:  <your code here> }
-        
+        survived_by_metric = { }  
+        for x in df[metric].unique():
+            survived_by_metric[x] = (df[df[metric]== x ])["Survived"].mean()         
         # Example for survived_by_metric:
         # survived_by_metric = {0: 0.2, 1: 0.3, 2: 0.35, 4: 0.5...}
         # here the keys are unique values of each metric, and the values are the survival probability.
@@ -337,16 +345,22 @@ def survival_vs_family(df):
         
         survived_by_family[metric] = survived_by_metric
         
-        
       #! What survival metric with what value ensures the highest probability of survival?
       #! Complete the following print statement after inspecting the reuslts
       
       #! your code here
-      print("To ensure the highest chance of survival, the metric ", <your code here>, 
-            'must have the value ', <your code here> )
-        
-       
-      return survived_by_family
+    best_metric = " "
+    highest = 0
+    best_val = -1
+    for metric in survived_by_family.keys():
+        find_max = max(survived_by_family[metric], key=survived_by_family[metric].get)
+        if(survived_by_family[metric][find_max] > highest):
+            highest = survived_by_family[metric][find_max]
+            best_metric = metric
+            best_val = find_max
+    print("To ensure the highest chance of survival, the metric ", best_metric,'must have the value ', best_val )      
+    
+    return survived_by_family
 
 
 ## 3.4 Visualizing the distribution of age and its impact on survival 
@@ -399,6 +413,8 @@ def survival_vs_age(df):
     plt.close('Age, all')
     plt.figure('Age, all')
     df['Age'].hist(bins=bins)
+    plt.close('Age, all')
+    
 
 
     '''
@@ -413,6 +429,63 @@ def survival_vs_age(df):
     #! plot 2 histograms of age: one for those who survived, and one for those that did not
     #! Bonus 1: plot 4 histograms of age: for women that survived and not, and for men tat survived and not
     #! Bonus 2: plot 6 histograms of age: for survivors and casualties of each of the 3 classes
+    
+    Age_Survived = df["Age"].where(df["Survived"] == 1)
+    Age_Not_Survived = df["Age"].where(df["Survived"] == 0)
+
+    women_Survived = df["Age"].where(df["Survived"] == 1).where(df["Bin_Sex"] == 0)
+    men_Survived = df["Age"].where(df["Survived"] == 1).where(df["Bin_Sex"] == 1)
+    women_Not_Survived = df["Age"].where(df["Survived"] == 0).where(df["Bin_Sex"] == 0)
+    men_Not_Survived = df["Age"].where(df["Survived"] == 0).where(df["Bin_Sex"] == 1)
+
+    plt.figure("Age_Survived")
+    plt.title("Survived by Age")
+    plt.xlabel("Age")
+    plt.ylabel("Survivors")
+    Age_Survived.hist(bins='auto')
+    plt.savefig("Age_Survived")
+    plt.close("Age_Survived")
+
+    plt.figure("Age_Not_Survived")
+    plt.title('Not Survived by Age')
+    plt.xlabel("Age")
+    plt.ylabel("Not Survived")
+    Age_Not_Survived.hist(bins='auto')
+    plt.savefig("Age_Not_Survived")
+    plt.close("Age_Not_Survived")
+
+    plt.figure("women_Survived")
+    plt.title('Women Survived by Age')
+    plt.xlabel("Age")
+    plt.ylabel("Survived")
+    women_Survived.hist(bins='auto')
+    plt.savefig("women_Survived")
+    plt.close("women_Survived")
+
+    plt.figure("men_Survived")
+    plt.title('Men Survived by Age')
+    plt.xlabel("Age")
+    plt.ylabel("Survived")
+    men_Survived.hist(bins='auto')
+    plt.savefig("men_Survived")
+    plt.close("men_Survived")
+
+    plt.figure("women_Not_Survived")
+    plt.title('Women Not Survived by Age')
+    plt.xlabel("Age")
+    plt.ylabel("Not Survived")
+    women_Not_Survived.hist(bins='auto')
+    plt.savefig("women_Not_Survived")
+    plt.close("women_Not_Survived")
+
+    plt.figure("men_Not_Survived")
+    plt.title('Men Not Survived by Age')
+    plt.xlabel("Age")
+    plt.ylabel("Not Survived")
+    men_Not_Survived.hist(bins='auto')
+    plt.savefig("men_Not_Survived")
+    plt.close("men_Not_Survived")
+        
     
     return
 
@@ -437,33 +510,36 @@ def survival_correlations(df):
 
     #! your code here
     #! find the 5 most important numerical columns, and print (with sign) and return their correlation. Use dict or Series
-    important_feats = ...
-    important_corrs = {'a': 0.9, 'b': -0.8, ...}
-    
+
+    important_feats = corr["Survived"][1:].abs().sort_values(ascending=False).head().index
+
+    important_corrs = corr["Survived"][important_feats]
+
     print(important_corrs)
-    
+
     return important_corrs
+
 
 
 # 4. Predicting survival!!!
 # We're finally ready to build a model and predict survival! 
 # 
-# In this section, df_one_hot should include all the transformations and additions we've done to the data, including, of course, the one-hot
+# In this section, df should include all the transformations and additions we've done to the data, including, of course, the one-hot
 # encoding of class and port of boarding (Embarked), and the binary "Sex" column, and also with the addition of the log1p scaled variables.
 # But including too much features, not to metntion redundant ones (think log1p_Age and Age), can deteriorate the performance. 
 # Based on the correlations of the numeric data to survival, and the impact of the categorical data, you're encouraged to pick the best features 
-# that will yield the best testing results.
-
+# that will yield the best testing results.    
+        
 
 ## 4.1 split data into train and test sets
-def split_data(df_one_hot):
+def split_data(df):
 
 
 
     from sklearn.model_selection import train_test_split
 
-    Y = df_one_hot['Survived']
-    X = df_one_hot.drop(['Survived'], axis = 1)
+    Y = df['Survived']
+    X = df.drop(['Survived'], axis = 1)
 
 
 
@@ -485,6 +561,9 @@ def train_logistic_regression(X_train, X_test, y_train, y_test):
 
     from sklearn.model_selection import GridSearchCV
     from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import confusion_matrix 
+    from sklearn.metrics import accuracy_score 
+    from sklearn.metrics import f1_score 
 
     para_grid = {'C' : [0.001, 0.01, 0.1, 1, 10 ,50], # internal regularization parameter of LogisticRegression
                  'solver' : ['sag', 'saga']}
@@ -517,9 +596,9 @@ def train_logistic_regression(X_train, X_test, y_train, y_test):
     '''
 
     #! your code here
-    conf_matrix =  <your code here>
-    accuracy =  <your code here>
-    f1_score =  <your code here>
+    conf_matrix =  confusion_matrix(y_test, y_test_logistic)
+    accuracy =  accuracy_score(y_test, y_test_logistic)
+    f1_score =  f1_score(y_test, y_test_logistic)
 
     print('acc: ', accuracy, 'f1: ', f1_score)
     print('confusion matrix:\n', conf_matrix)
@@ -544,17 +623,18 @@ if __name__ == '__main__':
     
     cols_with_nans = where_are_the_nans(df_lean)
     df_filled = fill_titanic_nas(df_lean)
-    df_one_hot = encode_one_hot(df_filled)
-    df_one_hot = make_family(df_one_hot)
-    df_one_hot = add_log1p(df_one_hot)
+    df = encode(df_filled)
+    df = make_family(df)
+    df = add_log1p(df)
  
-    survived_by_gender = survival_vs_gender(df_one_hot)
-    survived_by_class = survival_vs_class(df_one_hot)
-    survived_by_family = survival_vs_family(df_one_hot)
-    survival_vs_age(df_one_hot)
+    survived_by_gender = survival_vs_gender(df)
+    survived_by_class = survival_vs_class(df)
+    survived_by_family = survival_vs_family(df)
+    survival_vs_age(df)
     important_corrs = survival_correlations(df)
     
-    X_train, X_test, y_train, y_test = split_data(df_one_hot)
+    final_df = df.drop(labels=['Age', 'SibSp', 'Parch', 'Fare', 'Family','log1p_SibSp', 'log1p_Age'], axis=1)   
+    X_train, X_test, y_train, y_test = split_data(final_df)
     train_logistic_regression(X_train, X_test, y_train, y_test)
 
     
